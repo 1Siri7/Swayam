@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+  }
+
+  body {
+    @apply bg-navy-950 font-sans antialiased text-navy-50;
+    font-feature-settings: 'kern';
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    @apply bg-gold-400/30 text-white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-navy-950;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-navy-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gold-600;
+  }
+}
+
+@layer components {
+  .font-display {
+    @apply font-serif;
+  }
+
+  .eyebrow {
+    @apply text-[0.7rem] uppercase tracking-widest-3 font-medium text-gold-400;
+  }
+
+  .text-gold-gradient {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+
+  .text-gold-shimmer {
+    @apply bg-gold-shimmer bg-clip-text text-transparent;
+    background-size: 200% auto;
+    @apply animate-shimmer;
+  }
+
+  .btn-gold {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-gold-gradient px-8 py-4 text-sm font-semibold uppercase tracking-widest text-navy-950 transition-all duration-300 hover:shadow-[0_8px_30px_-6px_rgba(192,143,42,0.6)] hover:scale-[1.03] active:scale-100;
+  }
+
+  .btn-outline-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-gold-400/50 px-8 py-4 text-sm font-semibold uppercase tracking-widest text-gold-300 transition-all duration-300 hover:bg-gold-400/10 hover:border-gold-400;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs font-medium uppercase tracking-widest text-navy-200 transition-colors duration-300 hover:text-gold-300;
+  }
+
+  .glass {
+    @apply bg-navy-900/50 backdrop-blur-xl border border-white/[0.08];
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl;
+  }
+
+  .glass-nav {
+    @apply bg-navy-950/80 backdrop-blur-xl border-b border-gold-400/15;
+  }
+
+  .section-pad {
+    @apply px-6 py-24 md:px-10 lg:px-16 md:py-32;
+  }
+
+  .heading-xl {
+    @apply font-display text-4xl font-medium leading-[1.1] sm:text-5xl md:text-6xl lg:text-7xl;
+  }
+
+  .heading-lg {
+    @apply font-display text-3xl font-medium leading-[1.15] sm:text-4xl md:text-5xl;
+  }
+
+  .heading-md {
+    @apply font-display text-2xl font-medium leading-tight sm:text-3xl;
+  }
+
+  .divider-gold {
+    @apply h-px w-16 bg-gold-gradient;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-white/10 bg-navy-900/60 px-4 py-3.5 text-sm text-navy-50 placeholder:text-navy-300/40 transition-all duration-300 focus:border-gold-400/60 focus:bg-navy-900/80 focus:outline-none focus:ring-2 focus:ring-gold-400/20;
+  }
+
+  .label-field {
+    @apply mb-2 block text-xs uppercase tracking-widest text-navy-200;
+  }
+}
+
+@layer utilities {
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal-left.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal-right.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .reveal-scale {
+    opacity: 0;
+    transform: scale(0.94);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1s cubic-bezier(0, 0, 0.2, 1);
+  }
+  .reveal-scale.is-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .bg-grid-gold {
+    background-image: linear-gradient(rgba(192, 143, 42, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192, 143, 42, 0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+}
