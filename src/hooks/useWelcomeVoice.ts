@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 
 const SESSION_KEY = "swayam_welcome_played";
 
-type BannerState = "hidden" | "visible" | "fading";
-
 export function useWelcomeVoice(canPlay: boolean) {
-  const [bannerState, setBannerState] = useState<BannerState>("hidden");
+  const [bannerState, setBannerState] = useState<"hidden" | "visible" | "fading">("hidden");
 
   // Banner animation
   useEffect(() => {
@@ -30,7 +28,7 @@ export function useWelcomeVoice(canPlay: boolean) {
     return () => clearTimeout(showTimer);
   }, []);
 
-  // Play welcome audio on first scroll
+  // Play audio on first scroll, click, or tap
   useEffect(() => {
     if (!canPlay) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
@@ -54,19 +52,19 @@ export function useWelcomeVoice(canPlay: boolean) {
           console.error("Audio play failed:", err);
         });
 
-      // Remove listeners after first play
-      window.removeEventListener("wheel", playAudio);
-      window.removeEventListener("touchmove", playAudio);
+      window.removeEventListener("scroll", playAudio);
+      window.removeEventListener("click", playAudio);
+      window.removeEventListener("touchstart", playAudio);
     };
 
-    // Desktop scroll
-    window.addEventListener("wheel", playAudio, { passive: true });
-    // Mobile scroll
-    window.addEventListener("touchmove", playAudio, { passive: true });
+    window.addEventListener("scroll", playAudio, { passive: true });
+    window.addEventListener("click", playAudio, { passive: true });
+    window.addEventListener("touchstart", playAudio, { passive: true });
 
     return () => {
-      window.removeEventListener("wheel", playAudio);
-      window.removeEventListener("touchmove", playAudio);
+      window.removeEventListener("scroll", playAudio);
+      window.removeEventListener("click", playAudio);
+      window.removeEventListener("touchstart", playAudio);
     };
   }, [canPlay]);
 
