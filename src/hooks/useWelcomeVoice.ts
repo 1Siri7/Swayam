@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 const WELCOME_TEXT =
   'Welcome to Swayam Interior Designs. We are delighted to help you design your dream home.';
+
 const SESSION_KEY = 'swayam_welcome_played';
 
 type BannerState = 'hidden' | 'visible' | 'fading';
@@ -9,6 +10,7 @@ type BannerState = 'hidden' | 'visible' | 'fading';
 export function useWelcomeVoice() {
   const [bannerState, setBannerState] = useState<BannerState>('hidden');
 
+  // Banner Animation
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
@@ -18,10 +20,11 @@ export function useWelcomeVoice() {
       const t2 = window.setTimeout(() => {
         setBannerState('fading');
 
-        window.setTimeout(() => {
+        const t3 = window.setTimeout(() => {
           setBannerState('hidden');
         }, 700);
 
+        return () => window.clearTimeout(t3);
       }, 5500);
 
       return () => window.clearTimeout(t2);
@@ -30,41 +33,58 @@ export function useWelcomeVoice() {
     return () => window.clearTimeout(t1);
   }, []);
 
+  // Welcome Voice
   useEffect(() => {
     if (!('speechSynthesis' in window)) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    let played = false;
+    let hasSpoken = false;
 
-    const doSpeak = () => {
-      if (played) return;
+    const speakWelcome = () => {
+      if (hasSpoken) return;
       if (sessionStorage.getItem(SESSION_KEY)) return;
 
-      played = true;
+      const voices = window.speechSynthesis.getVoices();
+
+      // Wait until voices are available
+      if (voices.length === 0) {
+        return;
+      }
+
+      hasSpoken = true;
       sessionStorage.setItem(SESSION_KEY, '1');
 
       window.speechSynthesis.cancel();
 
-      const utt = new SpeechSynthesisUtterance(WELCOME_TEXT);
-      utt.rate = 0.9;
-      utt.pitch = 1.05;
-      utt.volume = 1;
+      const utterance = new SpeechSynthesisUtterance(WELCOME_TEXT);
 
-      const voices = window.speechSynthesis.getVoices();
-      const voice = voices.find(v => v.lang.startsWith('en'));
+      utterance.rate = 0.9;
+      utterance.pitch = 1.05;
+      utterance.volume = 1;
 
-      if (voice) {
-        utt.voice = voice;
+      const preferredVoice =
+        voices.find(v => v.lang === 'en-IN') ||
+        voices.find(v => v.lang === 'en-US') ||
+        voices.find(v => v.lang.startsWith('en'));
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
 
-      window.speechSynthesis.speak(utt);
+      window.speechSynthesis.speak(utterance);
     };
 
-    const timer = window.setTimeout(doSpeak, 1000);
+    // Try immediately
+    speakWelcome();
+
+    // Some browsers load voices later
+    window.speechSynthesis.onvoiceschanged = () => {
+      speakWelcome();
+    };
 
     return () => {
-      window.clearTimeout(timer);
       window.speechSynthesis.cancel();
+      window.speechSynthesis.onvoiceschanged = null;
     };
   }, []);
 
