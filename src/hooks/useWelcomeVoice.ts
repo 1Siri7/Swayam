@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 
 const SESSION_KEY = "swayam_welcome_played";
 
+type BannerState = "hidden" | "visible" | "fading";
+
 export function useWelcomeVoice(canPlay: boolean) {
-  const [bannerState, setBannerState] = useState<"hidden" | "visible" | "fading">("hidden");
+  const [bannerState, setBannerState] = useState<BannerState>("hidden");
 
   // Banner animation
   useEffect(() => {
@@ -52,12 +54,15 @@ export function useWelcomeVoice(canPlay: boolean) {
           console.error("Audio play failed:", err);
         });
 
+      // Remove listeners after first play
       window.removeEventListener("scroll", playAudio);
       window.removeEventListener("click", playAudio);
       window.removeEventListener("touchstart", playAudio);
     };
 
+    // Scroll (may or may not be accepted by browser)
     window.addEventListener("scroll", playAudio, { passive: true });
+    // Click/tap (always accepted)
     window.addEventListener("click", playAudio, { passive: true });
     window.addEventListener("touchstart", playAudio, { passive: true });
 
