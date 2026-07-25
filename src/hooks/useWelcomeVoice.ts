@@ -10,36 +10,37 @@ type BannerState = "hidden" | "visible" | "fading";
 export function useWelcomeVoice() {
   const [bannerState, setBannerState] = useState<BannerState>("hidden");
 
-  // Banner Animation
+  // Banner animation
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const showTimer = setTimeout(() => {
+    const t1 = setTimeout(() => {
       setBannerState("visible");
 
-      const fadeTimer = setTimeout(() => {
+      const t2 = setTimeout(() => {
         setBannerState("fading");
 
-        const hideTimer = setTimeout(() => {
+        const t3 = setTimeout(() => {
           setBannerState("hidden");
         }, 700);
 
-        return () => clearTimeout(hideTimer);
+        return () => clearTimeout(t3);
       }, 5500);
 
-      return () => clearTimeout(fadeTimer);
+      return () => clearTimeout(t2);
     }, 600);
 
-    return () => clearTimeout(showTimer);
+    return () => clearTimeout(t1);
   }, []);
 
-  // Welcome Voice
+  // Welcome speech after first interaction
   useEffect(() => {
     if (!("speechSynthesis" in window)) return;
-
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
     const speak = () => {
+      if (sessionStorage.getItem(SESSION_KEY)) return;
+
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(WELCOME_TEXT);
@@ -59,30 +60,29 @@ export function useWelcomeVoice() {
         utterance.voice = voice;
       }
 
-      utterance.onstart = () => {
-        console.log("Speech started");
-      };
-
       utterance.onend = () => {
-        console.log("Speech ended");
         sessionStorage.setItem(SESSION_KEY, "1");
       };
 
-      utterance.onerror = (e) => {
-        console.error("Speech Error:", e);
-      };
-
-      console.log("Speaking Welcome...");
       window.speechSynthesis.speak(utterance);
+
+      removeEvents();
     };
 
-    // Wait 2 seconds after page load
-    const timer = setTimeout(() => {
-      speak();
-    }, 2000);
+    const removeEvents = () => {
+      window.removeEventListener("click", speak);
+      window.removeEventListener("touchstart", speak);
+      window.removeEventListener("keydown", speak);
+      window.removeEventListener("scroll", speak);
+    };
+
+    window.addEventListener("click", speak, { once: true });
+    window.addEventListener("touchstart", speak, { once: true });
+    window.addEventListener("keydown", speak, { once: true });
+    window.addEventListener("scroll", speak, { once: true });
 
     return () => {
-      clearTimeout(timer);
+      removeEvents();
       window.speechSynthesis.cancel();
     };
   }, []);
