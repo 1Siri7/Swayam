@@ -10,36 +10,43 @@ type BannerState = "hidden" | "visible" | "fading";
 export function useWelcomeVoice() {
   const [bannerState, setBannerState] = useState<BannerState>("hidden");
 
-  // Banner animation
+  // Banner Animation
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const t1 = setTimeout(() => {
+    const t1 = window.setTimeout(() => {
       setBannerState("visible");
 
-      const t2 = setTimeout(() => {
+      const t2 = window.setTimeout(() => {
         setBannerState("fading");
 
-        const t3 = setTimeout(() => {
+        const t3 = window.setTimeout(() => {
           setBannerState("hidden");
         }, 700);
 
-        return () => clearTimeout(t3);
+        return () => window.clearTimeout(t3);
       }, 5500);
 
-      return () => clearTimeout(t2);
+      return () => window.clearTimeout(t2);
     }, 600);
 
-    return () => clearTimeout(t1);
+    return () => window.clearTimeout(t1);
   }, []);
 
-  // Welcome speech after first interaction
+  // Welcome Voice - Plays on first scroll/wheel/touch
   useEffect(() => {
     if (!("speechSynthesis" in window)) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const speak = () => {
+    let hasPlayed = false;
+
+    const speakWelcome = () => {
+      if (hasPlayed) return;
       if (sessionStorage.getItem(SESSION_KEY)) return;
+
+      hasPlayed = true;
+
+      removeListeners();
 
       window.speechSynthesis.cancel();
 
@@ -51,38 +58,38 @@ export function useWelcomeVoice() {
 
       const voices = window.speechSynthesis.getVoices();
 
-      const voice =
+      const preferredVoice =
         voices.find((v) => v.lang === "en-IN") ||
         voices.find((v) => v.lang === "en-US") ||
         voices.find((v) => v.lang.startsWith("en"));
 
-      if (voice) {
-        utterance.voice = voice;
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
 
       utterance.onend = () => {
         sessionStorage.setItem(SESSION_KEY, "1");
       };
 
+      utterance.onerror = (e) => {
+        console.error("Speech Error:", e);
+      };
+
       window.speechSynthesis.speak(utterance);
-
-      removeEvents();
     };
 
-    const removeEvents = () => {
-      window.removeEventListener("click", speak);
-      window.removeEventListener("touchstart", speak);
-      window.removeEventListener("keydown", speak);
-      window.removeEventListener("scroll", speak);
+    const removeListeners = () => {
+      window.removeEventListener("scroll", speakWelcome);
+      window.removeEventListener("wheel", speakWelcome);
+      window.removeEventListener("touchmove", speakWelcome);
     };
 
-    window.addEventListener("click", speak, { once: true });
-    window.addEventListener("touchstart", speak, { once: true });
-    window.addEventListener("keydown", speak, { once: true });
-    window.addEventListener("scroll", speak, { once: true });
+    window.addEventListener("scroll", speakWelcome, { once: true });
+    window.addEventListener("wheel", speakWelcome, { once: true });
+    window.addEventListener("touchmove", speakWelcome, { once: true });
 
     return () => {
-      removeEvents();
+      removeListeners();
       window.speechSynthesis.cancel();
     };
   }, []);
