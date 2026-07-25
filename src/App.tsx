@@ -23,7 +23,7 @@ import { Sparkles } from 'lucide-react';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const { bannerState } = useWelcomeVoice();
+  const { bannerState } = useWelcomeVoice(!loading);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2200);
