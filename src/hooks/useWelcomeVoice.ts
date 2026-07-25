@@ -31,47 +31,28 @@ export function useWelcomeVoice(canPlay: boolean) {
     return () => clearTimeout(showTimer);
   }, []);
 
-  // Play welcome audio after first user interaction
+  // Try to play audio automatically after loading screen
   useEffect(() => {
     if (!canPlay) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const playAudio = () => {
-      if (sessionStorage.getItem(SESSION_KEY)) return;
-
+    const timer = setTimeout(() => {
       const audio = new Audio("/welcome.mp3");
-      audio.volume = 1;
       audio.preload = "auto";
+      audio.volume = 1;
 
       audio
         .play()
         .then(() => {
           console.log("Welcome audio played");
           sessionStorage.setItem(SESSION_KEY, "1");
-          removeListeners();
         })
         .catch((err) => {
-          console.error("Audio play failed:", err);
+          console.error("Autoplay blocked:", err);
         });
-    };
+    }, 300);
 
-    const removeListeners = () => {
-      window.removeEventListener("click", playAudio);
-      window.removeEventListener("scroll", playAudio);
-      window.removeEventListener("wheel", playAudio);
-      window.removeEventListener("touchstart", playAudio);
-      window.removeEventListener("keydown", playAudio);
-    };
-
-    window.addEventListener("click", playAudio, { once: true });
-    window.addEventListener("scroll", playAudio, { once: true, passive: true });
-    window.addEventListener("wheel", playAudio, { once: true, passive: true });
-    window.addEventListener("touchstart", playAudio, { once: true, passive: true });
-    window.addEventListener("keydown", playAudio, { once: true });
-
-    return () => {
-      removeListeners();
-    };
+    return () => clearTimeout(timer);
   }, [canPlay]);
 
   return { bannerState };
