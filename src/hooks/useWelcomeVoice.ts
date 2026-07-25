@@ -7,7 +7,7 @@ type BannerState = "hidden" | "visible" | "fading";
 export function useWelcomeVoice() {
   const [bannerState, setBannerState] = useState<BannerState>("hidden");
 
-  // Welcome banner
+  // Welcome Banner
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
@@ -30,45 +30,35 @@ export function useWelcomeVoice() {
     return () => clearTimeout(showTimer);
   }, []);
 
-  // Play welcome audio after first user interaction
+  // Play welcome audio on first scroll
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const audio = new Audio("/welcome.mp3");
-    audio.preload = "auto";
-    audio.volume = 1;
-
-    const playAudio = () => {
+    const playWelcome = () => {
       if (sessionStorage.getItem(SESSION_KEY)) return;
 
-      audio
-        .play()
+      // Remove listener immediately
+      window.removeEventListener("scroll", playWelcome);
+
+      // Create audio AFTER the user scrolls
+      const audio = new Audio("/welcome.mp3");
+      audio.preload = "auto";
+      audio.volume = 1;
+
+      audio.play()
         .then(() => {
+          console.log("Welcome audio played");
           sessionStorage.setItem(SESSION_KEY, "1");
         })
         .catch((err) => {
           console.error("Audio play failed:", err);
         });
-
-      removeListeners();
     };
 
-    const removeListeners = () => {
-      window.removeEventListener("scroll", playAudio);
-      window.removeEventListener("wheel", playAudio);
-      window.removeEventListener("touchmove", playAudio);
-      window.removeEventListener("click", playAudio);
-    };
-
-    window.addEventListener("scroll", playAudio, { once: true });
-    window.addEventListener("wheel", playAudio, { once: true });
-    window.addEventListener("touchmove", playAudio, { once: true });
-    window.addEventListener("click", playAudio, { once: true });
+    window.addEventListener("scroll", playWelcome, { passive: true });
 
     return () => {
-      removeListeners();
-      audio.pause();
-      audio.currentTime = 0;
+      window.removeEventListener("scroll", playWelcome);
     };
   }, []);
 
