@@ -5,10 +5,9 @@ const SESSION_KEY = "swayam_welcome_played";
 type BannerState = "hidden" | "visible" | "fading";
 
 export function useWelcomeVoice(canPlay: boolean) {
-  const [bannerState, setBannerState] =
-    useState<BannerState>("hidden");
+  const [bannerState, setBannerState] = useState<BannerState>("hidden");
 
-  // Welcome banner
+  // Banner animation
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
@@ -31,28 +30,44 @@ export function useWelcomeVoice(canPlay: boolean) {
     return () => clearTimeout(showTimer);
   }, []);
 
-  // Try to play audio automatically after loading screen
+  // Play welcome audio on first scroll
   useEffect(() => {
     if (!canPlay) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const timer = setTimeout(() => {
-      const audio = new Audio("/welcome.mp3");
-      audio.preload = "auto";
-      audio.volume = 1;
+    let hasPlayed = false;
 
-      audio
-        .play()
+    const playAudio = () => {
+      if (hasPlayed) return;
+      hasPlayed = true;
+
+      const audio = new Audio("/welcome.mp3");
+      audio.volume = 1;
+      audio.preload = "auto";
+
+      audio.play()
         .then(() => {
           console.log("Welcome audio played");
           sessionStorage.setItem(SESSION_KEY, "1");
         })
         .catch((err) => {
-          console.error("Autoplay blocked:", err);
+          console.error("Audio play failed:", err);
         });
-    }, 300);
 
-    return () => clearTimeout(timer);
+      // Remove listeners after first play
+      window.removeEventListener("wheel", playAudio);
+      window.removeEventListener("touchmove", playAudio);
+    };
+
+    // Desktop scroll
+    window.addEventListener("wheel", playAudio, { passive: true });
+    // Mobile scroll
+    window.addEventListener("touchmove", playAudio, { passive: true });
+
+    return () => {
+      window.removeEventListener("wheel", playAudio);
+      window.removeEventListener("touchmove", playAudio);
+    };
   }, [canPlay]);
 
   return { bannerState };
