@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 
-const WELCOME_TEXT =
-  "Welcome to Swayam Interior Designs. We are delighted to help you design your dream home.";
-
 const SESSION_KEY = "swayam_welcome_played";
 
 type BannerState = "hidden" | "visible" | "fading";
@@ -10,87 +7,68 @@ type BannerState = "hidden" | "visible" | "fading";
 export function useWelcomeVoice() {
   const [bannerState, setBannerState] = useState<BannerState>("hidden");
 
-  // Banner Animation
+  // Welcome banner
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    const t1 = window.setTimeout(() => {
+    const showTimer = setTimeout(() => {
       setBannerState("visible");
 
-      const t2 = window.setTimeout(() => {
+      const fadeTimer = setTimeout(() => {
         setBannerState("fading");
 
-        const t3 = window.setTimeout(() => {
+        const hideTimer = setTimeout(() => {
           setBannerState("hidden");
         }, 700);
 
-        return () => window.clearTimeout(t3);
+        return () => clearTimeout(hideTimer);
       }, 5500);
 
-      return () => window.clearTimeout(t2);
+      return () => clearTimeout(fadeTimer);
     }, 600);
 
-    return () => window.clearTimeout(t1);
+    return () => clearTimeout(showTimer);
   }, []);
 
-  // Welcome Voice - Plays on first scroll/wheel/touch
+  // Play welcome audio after first user interaction
   useEffect(() => {
-    if (!("speechSynthesis" in window)) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    let hasPlayed = false;
+    const audio = new Audio("/welcome.mp3");
+    audio.preload = "auto";
+    audio.volume = 1;
 
-    const speakWelcome = () => {
-      if (hasPlayed) return;
+    const playAudio = () => {
       if (sessionStorage.getItem(SESSION_KEY)) return;
 
-      hasPlayed = true;
+      audio
+        .play()
+        .then(() => {
+          sessionStorage.setItem(SESSION_KEY, "1");
+        })
+        .catch((err) => {
+          console.error("Audio play failed:", err);
+        });
 
       removeListeners();
-
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(WELCOME_TEXT);
-
-      utterance.rate = 0.9;
-      utterance.pitch = 1.05;
-      utterance.volume = 1;
-
-      const voices = window.speechSynthesis.getVoices();
-
-      const preferredVoice =
-        voices.find((v) => v.lang === "en-IN") ||
-        voices.find((v) => v.lang === "en-US") ||
-        voices.find((v) => v.lang.startsWith("en"));
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.onend = () => {
-        sessionStorage.setItem(SESSION_KEY, "1");
-      };
-
-      utterance.onerror = (e) => {
-        console.error("Speech Error:", e);
-      };
-
-      window.speechSynthesis.speak(utterance);
     };
 
     const removeListeners = () => {
-      window.removeEventListener("scroll", speakWelcome);
-      window.removeEventListener("wheel", speakWelcome);
-      window.removeEventListener("touchmove", speakWelcome);
+      window.removeEventListener("scroll", playAudio);
+      window.removeEventListener("wheel", playAudio);
+      window.removeEventListener("touchmove", playAudio);
+      window.removeEventListener("click", playAudio);
     };
 
-    window.addEventListener("scroll", speakWelcome, { once: true });
-    window.addEventListener("wheel", speakWelcome, { once: true });
-    window.addEventListener("touchmove", speakWelcome, { once: true });
+    window.addEventListener("scroll", playAudio, { once: true });
+    window.addEventListener("wheel", playAudio, { once: true });
+    window.addEventListener("touchmove", playAudio, { once: true });
+    window.addEventListener("click", playAudio, { once: true });
 
     return () => {
       removeListeners();
-      window.speechSynthesis.cancel();
+      audio.pause();
+      audio.currentTime = 0;
     };
   }, []);
 
